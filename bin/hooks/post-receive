@@ -1,0 +1,22 @@
+#!/bin/bash
+
+# You will need to modify visudo to include the following line
+# %sudo   ALL=NOPASSWD: /home/bin/docker/redeploy.sh
+# for ease symlink this to the hooks directory
+
+while read oldrev newrev ref
+do
+  if [[ $ref =~ .*/master$ ]];
+  then
+      echo "Master ref received.  Deploying master branch to production..."
+
+      git -C /home/deploy --git-dir=/home/deploy/.git fetch origin
+      git -C /home/deploy --git-dir=/home/deploy/.git checkout -f master
+      git -C /home/deploy --git-dir=/home/deploy/.git reset --hard origin/master
+
+      cd /home/bin/docker
+      sudo ./redeploy.sh
+  else
+      echo "Ref $ref successfully received.  Doing nothing: only the master branch may be deployed on this server."
+  fi
+done
